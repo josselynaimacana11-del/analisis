@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Macroeconómico: Ecuador (Diciembre 2025)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .filter-select {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em;
+            padding-right: 2.5rem;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-slate-900 text-white shadow-md p-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Informe Macroeconómico: Modelo Centro–Periferia</h1>
+                <p class="text-slate-400 text-sm mt-1">Estructura Exportadora del Ecuador • Datos de Diciembre 2025</p>
+            </div>
+            <div class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-center">
+                <span class="text-xs uppercase tracking-wider text-slate-400 block">Enfoque Teórico</span>
+                <span class="font-semibold text-emerald-400 text-sm">Transición de la Periferia</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+        <section class="bg-white rounded-xl shadow-xs border border-gray-200 p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Clasificación Estructural</label>
+                    <select id="filter-clasificacion" class="w-full bg-gray-50 border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm filter-select" onchange="updateDashboard()">
+                        <option value="All">Todas las Clasificaciones</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Sector Madre</label>
+                    <select id="filter-sector" class="w-full bg-gray-50 border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm filter-select" onchange="updateDashboard()">
+                        <option value="All">Todos los Sectores</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Mercado de Destino</label>
+                    <select id="filter-mercado" class="w-full bg-gray-50 border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm filter-select" onchange="updateDashboard()">
+                        <option value="All">Todos los Destinos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tratados / Bloques</label>
+                    <select id="filter-tratado" class="w-full bg-gray-50 border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm filter-select" onchange="updateDashboard()">
+                        <option value="All">Todos los Tratados</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200">
+                <p class="text-sm font-medium text-gray-500 uppercase">Total Exportado FOB</p>
+                <h3 id="kpi-fob" class="text-3xl font-bold text-slate-900 mt-2">$0.00</h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200">
+                <p class="text-sm font-medium text-gray-500 uppercase">Volumen Físico Total</p>
+                <h3 id="kpi-peso" class="text-3xl font-bold text-slate-900 mt-2">0.00 KG</h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-xs border border-red-200 bg-red-50/20">
+                <p class="text-sm font-medium text-red-800 uppercase">Índice de Vulnerabilidad (IVE)</p>
+                <h3 id="kpi-ive" class="text-3xl font-bold text-red-700 mt-2">0.0%</h3>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 uppercase text-center">Participación por Clasificación</h3>
+                <div class="relative h-64"><canvas id="chartClasificacion"></canvas></div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 uppercase text-center">Densidad Económica (FOB/KG)</h3>
+                <div class="relative h-64"><canvas id="chartDensidad"></canvas></div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b bg-gray-50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">Desglose Técnico</h3>
+                <span id="table-count" class="bg-slate-200 text-xs px-3 py-1 rounded-full font-semibold">0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead><tr class="bg-slate-800 text-white text-xs uppercase"><th class="p-4">Partida</th><th class="p-4">Descripción</th><th class="p-4">Sector</th><th class="p-4 text-right">FOB</th><th class="p-4 text-right">FOB/KG</th></tr></thead>
+                    <tbody id="data-table-body" class="divide-y text-gray-700"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const dataset = [
+            { partida: "0306.17.19.00", desc: "Camarones", sector: "Acuacultura", fob: 829264250, peso: 73708419, clasificacion: "Bienes de especialidad", mercado: "Estados Unidos", tratado: "CAN" },
+            { partida: "2709.00.00.00", desc: "Petróleo", sector: "Petrolero", fob: 782882983, peso: 1607062180, clasificacion: "Bienes primarios puros", mercado: "China", tratado: "TLC China" },
+            { partida: "0603.11.00.00", desc: "Rosas", sector: "Florícola", fob: 417946959, peso: 45260714, clasificacion: "Bienes de especialidad", mercado: "Estados Unidos", tratado: "CAN" }
+        ];
+
+        let chart1, chart2;
+
+        function updateDashboard() {
+            const filteredData = dataset; 
+            let totalFOB = 0, totalPeso = 0, extractivo = 0;
+            
+            filteredData.forEach(d => { totalFOB += d.fob; totalPeso += d.peso; if(d.clasificacion === "Bienes primarios puros") extractivo += d.fob; });
+
+            document.getElementById('kpi-fob').innerText = "$" + (totalFOB/1000000).toFixed(2) + "M";
+            document.getElementById('kpi-peso').innerText = (totalPeso/1000000).toFixed(2) + "M KG";
+            document.getElementById('kpi-ive').innerText = (totalFOB > 0 ? (extractivo/totalFOB)*100 : 0).toFixed(1) + "%";
+
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = filteredData.map(d => `<tr><td class="p-4">${d.partida}</td><td class="p-4">${d.desc}</td><td class="p-4">${d.sector}</td><td class="p-4 text-right">$${(d.fob/1000000).toFixed(1)}M</td><td class="p-4 text-right">$${(d.fob/d.peso).toFixed(2)}</td></tr>`).join('');
+            
+            if(!chart1) {
+                chart1 = new Chart(document.getElementById('chartClasificacion'), { type: 'doughnut', data: { labels: ['Especialidad', 'Primarios'], datasets: [{ data: [1200, 780], backgroundColor: ['#10B981', '#EF4444'] }] } });
+                chart2 = new Chart(document.getElementById('chartDensidad'), { type: 'bar', data: { labels: dataset.map(d=>d.desc), datasets: [{ data: dataset.map(d=>d.fob/d.peso), backgroundColor: '#3B82F6' }] } });
+            }
+        }
+        updateDashboard();
+    </script>
+</body>
+</html>
